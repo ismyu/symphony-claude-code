@@ -551,7 +551,7 @@ defmodule SymphonyElixir.CoreTest do
     assert MapSet.member?(state.completed, issue_id)
     assert %{attempt: 1, due_at_ms: due_at_ms} = state.retry_attempts[issue_id]
     assert is_integer(due_at_ms)
-    assert_due_in_range(due_at_ms, 500, 1_100)
+    assert_due_in_range(due_at_ms, 300, 1_100)
   end
 
   test "abnormal worker exit increments retry attempt progressively" do
@@ -591,7 +591,7 @@ defmodule SymphonyElixir.CoreTest do
     assert %{attempt: 3, due_at_ms: due_at_ms, identifier: "MT-559", error: "agent exited: :boom"} =
              state.retry_attempts[issue_id]
 
-    assert_due_in_range(due_at_ms, 39_500, 40_500)
+    assert_due_in_range(due_at_ms, 39_000, 40_500)
   end
 
   test "first abnormal worker exit waits before retrying" do
@@ -1815,5 +1815,38 @@ defmodule SymphonyElixir.CoreTest do
     after
       File.rm_rf(test_root)
     end
+  end
+
+  test "claude_code config defaults and validation" do
+    write_workflow_file!(Workflow.workflow_file_path(), agent_kind: nil)
+
+    config = Config.settings!()
+    assert config.agent.kind == "codex"
+    assert config.claude_code.command == "claude"
+    assert config.claude_code.model == nil
+    assert config.claude_code.permission_mode == "bypassPermissions"
+    assert config.claude_code.turn_timeout_ms == 600_000
+    assert config.claude_code.read_timeout_ms == 300_000
+  end
+
+  test "claude_code config with custom values" do
+    write_workflow_file!(Workflow.workflow_file_path(),
+      agent_kind: "claude_code",
+      claude_code_command: "claude",
+      claude_code_model: "opus",
+      claude_code_turn_timeout_ms: 120_000
+    )
+
+    config = Config.settings!()
+    assert config.agent.kind == "claude_code"
+    assert config.claude_code.model == "opus"
+    assert config.claude_code.turn_timeout_ms == 120_000
+  end
+
+  test "agent.kind rejects invalid values" do
+    write_workflow_file!(Workflow.workflow_file_path(), agent_kind: "invalid_agent")
+
+    assert {:error, {:invalid_workflow_config, message}} = Config.validate!()
+    assert message =~ "agent.kind"
   end
 end

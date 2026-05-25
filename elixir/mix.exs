@@ -21,6 +21,7 @@ defmodule SymphonyElixir.MixProject do
           SymphonyElixir.AgentRunner,
           SymphonyElixir.CLI,
           SymphonyElixir.Codex.AppServer,
+          SymphonyElixir.ClaudeCode.Adapter,
           SymphonyElixir.Codex.DynamicTool,
           SymphonyElixir.HttpServer,
           SymphonyElixir.StatusDashboard,
@@ -75,7 +76,8 @@ defmodule SymphonyElixir.MixProject do
       {:solid, "~> 1.2"},
       {:ecto, "~> 3.13"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.4", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:elixir_uuid, "~> 1.2"}
     ]
   end
 
