@@ -1,7 +1,7 @@
-# Symphony Elixir
+# Symphony Elixir (Claude Code Fork)
 
-This directory contains the current Elixir/OTP implementation of Symphony, based on
-[`SPEC.md`](../SPEC.md) at the repository root.
+This directory contains the Elixir/OTP implementation of Symphony with **Claude Code CLI** support,
+based on [`SPEC.md`](../SPEC.md) at the repository root.
 
 > [!WARNING]
 > Symphony Elixir is prototype software intended for evaluation only and is presented as-is.
@@ -15,10 +15,9 @@ This directory contains the current Elixir/OTP implementation of Symphony, based
 
 1. Polls Linear for candidate work
 2. Creates a workspace per issue
-3. Launches Codex in [App Server mode](https://developers.openai.com/codex/app-server/) inside the
-   workspace
-4. Sends a workflow prompt to Codex
-5. Keeps Codex working on the issue until the work is done
+3. Launches **Claude Code** or **Codex** (configurable via `agent.kind`) inside the workspace
+4. Sends a workflow prompt to the agent
+5. Keeps the agent working on the issue until the work is done
 
 During app-server sessions, Symphony also serves a client-side `linear_graphql` tool so that repo
 skills can make raw Linear GraphQL calls.
