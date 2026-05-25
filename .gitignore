@@ -1,0 +1,9 @@
+# Build artifacts
+elixir/_build/
+elixir/deps/
+
+# Logs
+elixir/log/
+
+# OS files
+.DS_Store
