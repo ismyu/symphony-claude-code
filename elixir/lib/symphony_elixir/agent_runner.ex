@@ -84,19 +84,24 @@ defmodule SymphonyElixir.AgentRunner do
 
   defp run_codex_turns(workspace, issue, codex_update_recipient, opts, worker_host) do
     max_turns = Keyword.get(opts, :max_turns, Config.settings!().agent.max_turns)
-    issue_state_fetcher = Keyword.get(opts, :issue_state_fetcher, &Tracker.fetch_issue_states_by_ids/1)
+
+    issue_state_fetcher =
+      Keyword.get(opts, :issue_state_fetcher, &Tracker.fetch_issue_states_by_ids/1)
+
     provider = agent_provider()
+    turn_opts = %{provider: provider, max_turns: max_turns, issue_state_fetcher: issue_state_fetcher}
 
     with {:ok, session} <- provider.start_session(workspace, worker_host: worker_host) do
       try do
-        do_run_codex_turns(provider, session, workspace, issue, codex_update_recipient, opts, issue_state_fetcher, 1, max_turns)
+        do_run_codex_turns(session, workspace, issue, codex_update_recipient, opts, turn_opts, 1)
       after
         provider.stop_session(session)
       end
     end
   end
 
-  defp do_run_codex_turns(provider, app_session, workspace, issue, codex_update_recipient, opts, issue_state_fetcher, turn_number, max_turns) do
+  defp do_run_codex_turns(app_session, workspace, issue, codex_update_recipient, opts, turn_opts, turn_number) do
+    %{provider: provider, max_turns: max_turns, issue_state_fetcher: issue_state_fetcher} = turn_opts
     prompt = build_turn_prompt(issue, opts, turn_number, max_turns)
 
     with {:ok, turn_session} <-
@@ -113,15 +118,13 @@ defmodule SymphonyElixir.AgentRunner do
           Logger.info("Continuing agent run for #{issue_context(refreshed_issue)} after normal turn completion turn=#{turn_number}/#{max_turns}")
 
           do_run_codex_turns(
-            provider,
             app_session,
             workspace,
             refreshed_issue,
             codex_update_recipient,
             opts,
-            issue_state_fetcher,
-            turn_number + 1,
-            max_turns
+            turn_opts,
+            turn_number + 1
           )
 
         {:continue, refreshed_issue} ->

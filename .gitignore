@@ -7,3 +7,6 @@ elixir/log/
 
 # OS files
 .DS_Store
+
+# Secrets
+.env

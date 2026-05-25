@@ -53,11 +53,16 @@ defmodule SymphonyElixir.ClaudeCode.Adapter do
         session_id = "#{session.session_id}-#{turn_count}"
 
         try do
-          emit_message(on_message, :session_started, %{
-            session_id: session_id,
-            thread_id: session.session_id,
-            turn_id: turn_count
-          }, metadata)
+          emit_message(
+            on_message,
+            :session_started,
+            %{
+              session_id: session_id,
+              thread_id: session.session_id,
+              turn_id: turn_count
+            },
+            metadata
+          )
 
           case await_turn_completion(port, on_message, read_timeout, turn_timeout, metadata) do
             {:ok, result_text} ->
@@ -74,10 +79,15 @@ defmodule SymphonyElixir.ClaudeCode.Adapter do
             {:error, reason} ->
               Logger.warning("Claude Code turn failed for #{issue_context(issue)} session_id=#{session_id}: #{inspect(reason)}")
 
-              emit_message(on_message, :turn_ended_with_error, %{
-                session_id: session_id,
-                reason: reason
-              }, metadata)
+              emit_message(
+                on_message,
+                :turn_ended_with_error,
+                %{
+                  session_id: session_id,
+                  reason: reason
+                },
+                metadata
+              )
 
               {:error, reason}
           end
@@ -99,10 +109,13 @@ defmodule SymphonyElixir.ClaudeCode.Adapter do
 
   defp build_cli_args(session, prompt, turn_count) do
     base_args = [
-      "-p", prompt,
-      "--output-format", "stream-json",
+      "-p",
+      prompt,
+      "--output-format",
+      "stream-json",
       "--verbose",
-      "--permission-mode", session.settings.permission_mode,
+      "--permission-mode",
+      session.settings.permission_mode,
       "--dangerously-skip-permissions"
     ]
 
@@ -331,13 +344,16 @@ defmodule SymphonyElixir.ClaudeCode.Adapter do
 
   defp stop_port(port) when is_port(port) do
     case :erlang.port_info(port) do
-      :undefined -> :ok
-      _ -> try do
-              Port.close(port)
-              :ok
-            rescue
-              ArgumentError -> :ok
-            end
+      :undefined ->
+        :ok
+
+      _ ->
+        try do
+          Port.close(port)
+          :ok
+        rescue
+          ArgumentError -> :ok
+        end
     end
   end
 
